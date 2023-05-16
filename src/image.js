@@ -1,29 +1,44 @@
 import { useDispatch, useSelector } from "react-redux";
-import {fetchAllImages} from './features/imageSlice';
-import { useEffect } from "react";
-import { useState } from "react";
+import { fetchAllImages } from './features/imageSlice';
+import { useEffect, useState, useTransition } from "react";
 
-export default function Image(){
-  const [isLoading, setIsLoading] = useState(false);
+export default function Image() {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState(null);
 
-    let disp=useDispatch();
-    
+  const dispatch = useDispatch();
 
-    useEffect(() => {
-      setIsLoading(true);
-        disp(fetchAllImages())
-        
-        setIsLoading(false);     
-    },);
-    
-    let imageArr1=useSelector(state=>state.image.imageArr)
+  useEffect(() => {
+    startTransition(() => {
+      setError(null);
+    });
 
-return(
-<>
- {isLoading? (<p>Loading...</p>) : (<><h2>Data:</h2>
-  {imageArr1&&
-  imageArr1.map(item=><div key={item.id}>{item.url}</div>)
-  }
-</>)}
-</>)
+    dispatch(fetchAllImages())
+      .then(() => {
+        startTransition(() => {});
+      })
+      .catch(error => {
+        setError(error.message);
+      });
+  }, [dispatch, startTransition]);
+
+  const imageArr = useSelector(state => state.image.imageArr);
+
+  return (
+    <>
+      {isPending ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <p>{error}</p>
+      ) : (
+        <>
+          <h2>Data:</h2>
+          {imageArr &&
+            imageArr.map(item => (
+              <div key={item.id}>{item.url}</div>
+            ))}
+        </>
+      )}
+    </>
+  );
 }
