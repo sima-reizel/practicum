@@ -35,7 +35,7 @@ export default function Image() {
           <h2>Data:</h2>
           {imageArr &&
             imageArr.map(item => (
-              <div key={item.id}>{item.url}</div>
+              <img src={item.url}/>
             ))}
         </>
       )}
